@@ -4,6 +4,7 @@
 
 ui <- page_navbar(
     useShinyjs(),
+    
     header = tags$head(
         includeCSS("www/styles.css")
     ),
