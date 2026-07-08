@@ -5,7 +5,6 @@ library(gridExtra)
 library(gtools)
 library(stringr)
 library(dplyr)
-library(stringr)
 library(ggplot2)
 library(shinyjs)
 
