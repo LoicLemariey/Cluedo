@@ -28,7 +28,7 @@ install.packages("ggplot2")
 install.packages("stringr")
 install.packages("gtools")
 install.packages("gridExtra")
-
+install.packages("DT")
 
 
 renv::install("tidyselect",dependencies = TRUE)

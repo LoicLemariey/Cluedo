@@ -55,8 +55,40 @@
 }
 
 
+/*
+#cards_table table {
+  width: auto;
+  border-collapse: collapse;
+}
 
+#cards_table td,
+#cards_table th {
+  padding: 0px 4px;
+  font-size: 11px;
+  white-space: nowrap;
+}
 
+#cards_table td:first-child,
+#cards_table th:first-child {
+  width: 80px;
+}
 
+#cards_table td:nth-child(2),
+#cards_table th:nth-child(2),
+#cards_table td:nth-child(3),
+#cards_table th:nth-child(3) {
+  width: 45px;
+  text-align: center;
+}
 
+#cards_table .checkbox {
+  margin: 0;
+  padding: 0;
+}
 
+#cards_table input[type="checkbox"] {
+  margin: 0;
+  transform: scale(0.8);
+}
+
+*/

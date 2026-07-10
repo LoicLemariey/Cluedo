@@ -1,15 +1,53 @@
 #config
 
-n_dimension<-2
-lieux<-paste("l",1:3,sep="")
-armes<-paste("a",1:5,sep="")
-cartes<-c(lieux,armes)
+n_dimension<-3
+
+
+
+characters <- c(
+    "Miss Scarlett",
+    "Colonel Mustard",
+    "Mrs. White",
+    "Mr. Green",
+    "Mrs. Peacock",
+    "Professor Plum"
+)
+
+armes <- c(
+    "Candlestick",
+    "Dagger",
+    "Lead Pipe",
+    "Revolver",
+    "Rope",
+    "Wrench"
+)
+
+lieux <- c(
+    "Kitchen",
+    "Ballroom",
+    "Conservatory",
+    "Dining Room",
+    "Billiard Room",
+    "Library",
+    "Lounge",
+    "Hall",
+    "Study"
+)
+
+response_choices <- c(
+    "Not asked",
+    "No card",
+    "One of the three",
+    "Character",
+    "Weapon",
+    "Room"
+)
+
+cartes<-c(lieux,armes,characters)
 
 cartes_df<-data.frame(cartes=cartes,
                       type=c(rep("lieux",length(lieux)),
-                             rep("armes", length(armes))))
-nb_categories<-length(unique(cartes_df$type))
-n_joueurs<-4
-n_tot_combi<-nb_total_combi(cartes_df,n_joueurs)
+                             rep("armes", length(armes)),
+                             rep("suspect", length(characters))))
 
-scenario_per_solution_start<-n_tot_combi/(3*5)
+n_joueurs<-4

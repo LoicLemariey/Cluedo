@@ -495,10 +495,146 @@ progress_enquete<-function(df_solution,n_tot_combi,scenario_per_solution_start){
     progress<-1-n_current/denom
     return(progress)
 }
+compute_proba_per_card<-function(contraintes_propage){
+    proba_table<-contraintes_propage$globales$globales
+    proba_table[proba_table == 0] <- NA
+    proba_table[proba_table == -1] <- 0
+    dp_preli<- DP_pre_computation(contraintes_propage)
+    
+    memo <- new.env(hash = TRUE)
+    n_combi <- count_assignments(q = dp_preli$q,
+                                 k=dp_preli$k,
+                                 sat =dp_preli$initial_sat,
+                                 admissible = dp_preli$admissible,
+                                 clause_card = dp_preli$clause_card,
+                                 clause_player = dp_preli$clause_player,
+                                 C = dp_preli$C,
+                                 J=dp_preli$J,
+                                 M = dp_preli$M,
+                                 memo = memo)
+    for (i in seq_len(nrow(proba_table))) {
+        for (j in seq_len(ncol(proba_table))) {
+            if (is.na(proba_table[i, j])) {
+                new_globales<-ajouter_globale(contraintes_propage$globales,
+                                              colnames(proba_table)[j],
+                                              rownames(proba_table)[i],TRUE)
+                new_contrainte<-boucle_propagation(new_globales,clause)
+                dp_preli<- DP_pre_computation(new_contrainte)
+                
+                memo <- new.env(hash = TRUE)
+                proba_table[i, j] <- round(count_assignments(q = dp_preli$q,
+                                                             k=dp_preli$k,
+                                                             sat =dp_preli$initial_sat,
+                                                             admissible = dp_preli$admissible,
+                                                             clause_card = dp_preli$clause_card,
+                                                             clause_player = dp_preli$clause_player,
+                                                             C = dp_preli$C,
+                                                             J=dp_preli$J,
+                                                             M = dp_preli$M,
+                                                             memo = memo)/n_combi,3)
+            }
+            
+            
+            
+        }
+    }
+    
+    return(proba_table)
+}
 
+
+
+metrique_cartes <- function(proba_table, voisin = "J2") {
+    
+    # Entropie de la carte
+    H <- apply(proba_table, 1, function(p) {
+        p <- p[!is.na(p) & p > 0]
+        -sum(p * log2(p))
+    })
+    
+    # Probabilité que le voisin possède la carte
+    p_voisin <- proba_table[,voisin]
+    
+    # Probabilité que la carte soit dans la solution
+    p_solution <- apply(proba_table[,1:n_dimension],1,sum)
+    
+    # Métrique
+    metrique <- round(H * (p_voisin + 0.3 * p_solution),3)
+    
+    out<-data.frame(
+        cartes = rownames(proba_table),
+        H = H,
+        P_voisin = p_voisin,
+        P_solution = p_solution,
+        Metrique = metrique,
+        row.names = NULL
+    )
+    return(out)
+}
+
+
+suggestion_max <- function(cartes, proba_table,
+                           moi = "J1",
+                           joueur_lointain = "J4") {
+    
+    res <- list()
+    
+    for (t in unique(cartes$type)) {
+        
+        sous <- cartes[cartes$type == t, ]
+        
+        # Colonne solution correspondante
+        col_solution <- switch(
+            t,
+            "armes" = "S_armes",
+            "lieux" = "S_lieux",
+            "suspects" = "S_suspects"
+        )
+        
+        # Le type est-il résolu ?
+        resolu <- any(proba_table[sous$cartes, col_solution] == 1)
+        
+        if (!resolu) {
+            
+            # Cas normal : meilleure métrique
+            choix <- sous[which.max(sous$Metrique), ]
+            
+        } else {
+            
+            ## 1. Une carte de ma main
+            idx <- sous$cartes[proba_table[sous$cartes, moi] == 1]
+            
+            if (length(idx) > 0) {
+                
+                choix <- sous[match(idx[1], sous$cartes), ]
+                
+            } else {
+                
+                ## 2. Une carte du joueur lointain
+                p <- proba_table[sous$cartes, joueur_lointain]
+                
+                if (max(p, na.rm = TRUE) > 0) {
+                    
+                    idx <- which.max(p)
+                    choix <- sous[idx, ]
+                    
+                } else {
+                    
+                    ## 3. Sinon meilleure métrique
+                    choix <- sous[which.max(sous$Metrique), ]
+                    
+                }
+            }
+        }
+        
+        res[[t]] <- choix
+    }
+    
+    do.call(rbind, res)
+}
 
 #------------description du jeux------------------------------------------------
-n_dimension<-2
+n_dimension<-3
 lieux<-paste("l",1:3,sep="")
 armes<-paste("a",1:5,sep="")
 cartes<-c(lieux,armes)
@@ -565,6 +701,11 @@ contraintes_propage$globales$quotas
 contraintes_propage$globales$globales
 
 
+
+
+tableau_proba<-compute_proba_per_card(contraintes_propage)
+metric<-merge(cartes_df,metrique_cartes(tableau_proba))
+suggestion<-suggestion_max(metric,tableau_proba)$cartes
 
 
 
@@ -706,18 +847,101 @@ print(result)
 
 
 
-#test avec pruning
-memo <- new.env(hash = TRUE)
-initial_sat <- if(M > 0) rep(0, M) else integer(0)
-t1<-Sys.time()
-result <- count_assignments(
-    k = 1,
-    q = quotas,
-    sat = initial_sat
-)
-t2<-Sys.time()
-difftime(t2,t1)
-result
+# TEST vrai cluedo--------------------------------------------------------------
 
-length(memo)
-View(memo)
+n_dimension=3
+
+characters <- c(
+    "Miss Scarlett",
+    "Colonel Mustard",
+    "Mrs. White",
+    "Mr. Green",
+    "Mrs. Peacock",
+    "Professor Plum"
+)
+
+armes <- c(
+    "Candlestick",
+    "Dagger",
+    "Lead Pipe",
+    "Revolver",
+    "Rope",
+    "Wrench"
+)
+
+lieux <- c(
+    "Kitchen",
+    "Ballroom",
+    "Conservatory",
+    "Dining Room",
+    "Billiard Room",
+    "Library",
+    "Lounge",
+    "Hall",
+    "Study"
+)
+
+
+cartes<-c(lieux,armes,characters)
+
+cartes_df<-data.frame(cartes=cartes,
+                      type=c(rep("lieux",length(lieux)),
+                             rep("armes", length(armes)),
+                             rep("suspect", length(characters))))
+n_joueurs<-4
+nb_categories<-n_dimension
+n_tot_combi<-nb_total_combi(cartes_df,n_joueurs)
+scenario_per_solution_start<-n_tot_combi/(length(lieux)*length(armes)*length(characters))
+
+
+#----------ajouter des contraintes----------------------------------------------
+
+clause<-build_clauses()
+globales<-build_globales(cartes_df,4)
+globales$globales
+globales$quotas
+clause
+
+
+
+# -----------------scenario start-----------------------------------------------
+memo <- new.env(hash = TRUE)
+
+#---------------------------------scenario 1------------------------------------
+globales<-ajouter_globale(globales,"J1",c("Kitchen"),TRUE)
+globales<-ajouter_globale(globales,"J1",c("Ballroom"),TRUE)
+globales<-ajouter_globale(globales,"J1",c("Dagger"),TRUE)
+globales<-ajouter_globale(globales,"J1",c("Mr. Green"),TRUE)
+
+globales<-ajouter_globale(globales,"Communes",c("Conservatory"),TRUE)
+globales<-ajouter_globale(globales,"Communes",c("Professor Plum"),TRUE)
+
+
+globales<-ajouter_globale(globales,"J2",c("Hall","Revolver","Mrs. White"),FALSE)
+
+test_suggestion<-c("Library","Rope","Miss Scarlett")
+clause<-ajouter_clause(clause,"J3",test_suggestion)
+
+
+#(globales_test<-ajouter_globale(globales,"S_lieux","l3",TRUE))
+#globales<-ajouter_globale(globales,"Communes","a3",TRUE)
+#globales<-ajouter_globale(globales,"Communes","l3",TRUE)
+globales$globales
+globales$quotas
+clause
+
+
+#-------------------Propagation de contraintes----------------------------------
+
+contraintes_propage<-boucle_propagation(globales,clause)
+contraintes_propage$clause
+contraintes_propage$globales$quotas
+contraintes_propage$globales$globales
+
+
+
+
+tableau_proba<-compute_proba_per_card(contraintes_propage)
+metric<-merge(cartes_df,metrique_cartes(tableau_proba))
+suggestion<-suggestion_max(metric,tableau_proba)$cartes
+df_solution<-fill_all_probabilty(contraintes_propage)

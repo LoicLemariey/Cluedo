@@ -15,12 +15,46 @@ ui <- page_navbar(
         bootswatch = "flatly"
     ),
     
-#--------------TOURNAMENT STATE-------------------------------------------------
+
+    
+    
+#--------------INPUT -------------------------------------------------
     
     nav_panel(
         "Input",
+        
+        h5("Initialisation"),
+        # fluidRow(
+        #     column(
+        #         width = 2,
+        #         uiOutput("cardsInput")
+        #     )
+        # ),
+        # checkboxGroupInput(
+        #     "my_cards",
+        #     "Mes cartes",
+        #     choices = cartes_df$cartes
+        # ),
+        # 
+        # checkboxGroupInput(
+        #     "shared_cards",
+        #     "Cartes communes",
+        #     choices = cartes_df$cartes
+        # ),
+        
+        div(uiOutput("cardsInput")),
+        
+        div(
         h5("Enter element of the investigation"),
-
+        uiOutput("investigationInput"),
+        br(),
+        DTOutput("suggestionTable")),
+        
+        actionButton(
+            "btn_contrainte",
+            "Compute summary",
+            style = "width:auto;"
+        )
 
             
             #titlePanel("States"),
@@ -79,5 +113,23 @@ ui <- page_navbar(
            
             #div(DTOutput("table_path"),height="700px")
         )
+    ),
+
+
+
+
+#--------------Param -------------------------------------------------    
+nav_panel(
+    "parameters",
+    h5("Parameters"),
+    selectInput(
+        inputId = "num_players",
+        label = "Number of players",
+        choices = 2:6,
+        selected = 4
     )
+)
+
+
+
 )

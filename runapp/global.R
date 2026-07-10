@@ -7,6 +7,7 @@ library(stringr)
 library(dplyr)
 library(ggplot2)
 library(shinyjs)
+library(DT)
 
 
 #------------------parameters-------------
@@ -22,6 +23,12 @@ options(warn = -1)
 #  load data--------------------------------------------------------------------
 
 #recover proba
+
+nb_categories<-n_dimension
+n_tot_combi<-nb_total_combi(cartes_df,n_joueurs)
+n_solution_start<-length(lieux)*length(armes)*length(characters)
+scenario_per_solution_start<-n_tot_combi/n_solution_start
+
 
 
 
