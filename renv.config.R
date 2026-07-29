@@ -50,5 +50,6 @@ library(rsconnect)
 deps <- rsconnect::appDependencies()
 deps[deps$Package == "data.table", ]
 
+.libPaths(renv_lib)
 rsconnect::writeManifest(verbose = TRUE)
 rsconnect::writeManifest(appDir = ".", verbose = TRUE)
