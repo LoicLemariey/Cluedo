@@ -445,10 +445,12 @@ fill_all_probabilty<-function(contraintes_propage){
             contraintes_propage = contraintes_propage
         )
     )
+    df$nb_combi<-as.integer(df$nb_combi)
     df$Probability<-round(df$nb_combi/sum(df$nb_combi)*100,2)
     
     df<-df %>% arrange(desc(Probability)) %>% filter(Probability>0)
     #print("leave computation")
+    names(df)<-c("Room","Weapon","Character","Number of combination","Probability")
     return(df)
 }
 
@@ -512,11 +514,11 @@ compute_proba_per_card<-function(contraintes_propage){
             
         }
     }
-    # print("Leave proba fonction")
+    #print("Leave proba fonction")
     # View(proba_table)
 
     
-    tab <- as.data.frame(proba_table*100, check.names = FALSE)
+    tab <- as.data.frame(round(proba_table*100,2), check.names = FALSE)
     
     tab <- data.frame(
         cards = row.names(proba_table),
@@ -741,4 +743,17 @@ clean_clause_table <- function(clause) {
     return(clause)
 }
 
+
+friendly_names <- function(x) {
+    
+    x <- gsub("^S_lieux$", "Solution Room", x)
+    x <- gsub("^S_armes$", "Solution Weapon", x)
+    x <- gsub("^S_suspect$", "Solution Character", x)
+    
+    x <- gsub("^Communes$", "Shared Cards", x)
+    
+    x <- gsub("^J([0-9]+)$", "Player \\1", x)
+    x <- gsub("cards", "Cards", x)
+    x
+}
 

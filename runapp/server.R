@@ -42,20 +42,97 @@ server <- function(input, output, session){
 
 
     
-    # Interface dynamique
+    # # Interface dynamique
+    # output$investigationInput <- renderUI({
+    #     
+    #     req(input$num_players)
+    #     
+    #     nb_inputs <- 3 + as.numeric(input$num_players)
+    #     
+    #     width <- floor(12 / nb_inputs)
+    #     
+    #     
+    #     fluidRow(
+    #         
+    #         column(
+    #             width = width,
+    #             selectInput(
+    #                 "room",
+    #                 "Room",
+    #                 choices = lieux
+    #             )
+    #         ),
+    #         
+    #         
+    #         column(
+    #             width = width,
+    #             selectInput(
+    #                 "weapon",
+    #                 "Weapon",
+    #                 choices = armes
+    #             )
+    #         ),
+    #         
+    #         
+    # 
+    #         
+    #         column(
+    #             width = width,
+    #             selectInput(
+    #                 "character",
+    #                 "Character",
+    #                 choices = characters
+    #             )
+    #         ),
+    #         
+    #         
+    #         lapply(1:input$num_players, function(i){
+    #             
+    #             column(
+    #                 width = width,
+    #                 
+    #                 selectInput(
+    #                     paste0("player_", i),
+    #                     paste("Player", i),
+    #                     choices = response_choices
+    #                 )
+    #             )
+    #             
+    #         }),
+    #         
+    #         
+    #         column(
+    #             width = 12,
+    #             
+    #             actionButton(
+    #                 "addSuggestion",
+    #                 "Add investigation",
+    #                 class = "btn-primary"
+    #             )
+    #             
+    #         )
+    #         
+    #     )
+    #     
+    # })
+    
+    
+    
+    
     output$investigationInput <- renderUI({
         
         req(input$num_players)
         
-        nb_inputs <- 3 + as.numeric(input$num_players)
-        
-        width <- floor(12 / nb_inputs)
-        
-        
-        fluidRow(
+        div(
+            style = "
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        ",
             
-            column(
-                width = width,
+            div(
+                style = "flex: 1; min-width: 120px;",
                 selectInput(
                     "room",
                     "Room",
@@ -63,9 +140,8 @@ server <- function(input, output, session){
                 )
             ),
             
-            
-            column(
-                width = width,
+            div(
+                style = "flex: 1; min-width: 120px;",
                 selectInput(
                     "weapon",
                     "Weapon",
@@ -73,11 +149,8 @@ server <- function(input, output, session){
                 )
             ),
             
-            
-
-            
-            column(
-                width = width,
+            div(
+                style = "flex: 1; min-width: 120px;",
                 selectInput(
                     "character",
                     "Character",
@@ -85,12 +158,10 @@ server <- function(input, output, session){
                 )
             ),
             
-            
-            lapply(1:input$num_players, function(i){
+            lapply(seq_len(input$num_players), function(i) {
                 
-                column(
-                    width = width,
-                    
+                div(
+                    style = "flex: 1; min-width: 120px;",
                     selectInput(
                         paste0("player_", i),
                         paste("Player", i),
@@ -100,23 +171,18 @@ server <- function(input, output, session){
                 
             }),
             
-            
-            column(
-                width = 12,
-                
+            div(
+                style = "padding-bottom: 20px;",
                 actionButton(
                     "addSuggestion",
                     "Add investigation",
                     class = "btn-primary"
                 )
-                
             )
             
         )
         
     })
-    
-    
     
     
     # Ajout d'une enquête
@@ -282,7 +348,21 @@ server <- function(input, output, session){
         
         req(cartes_df$cartes)
         
-        tagList(
+        div(
+            style = "
+            width: 250px;
+            height: 550px;
+            overflow: auto;
+        ",
+            tags$style("
+            table {
+                font-size: 12px;
+            }
+            td, th {
+                padding: 2px 5px !important;
+            }
+        "),
+            
             tableOutput("cards_table")
         )
         
@@ -291,32 +371,58 @@ server <- function(input, output, session){
     
     
     # init----------------------------------------------------------------------
+    # output$cards_table <- renderTable({
+    #     
+    #     data.frame(
+    #         Carte = cartes_df$cartes,
+    #         My_cards = sapply(cartes_df$cartes, function(x) {
+    #             as.character(
+    #                 checkboxInput(
+    #                     paste0("my_", x),
+    #                     label = NULL,
+    #                     value = FALSE
+    #                 )
+    #             )
+    #         }),
+    #         Shared = sapply(cartes_df$cartes, function(x) {
+    #             as.character(
+    #                 checkboxInput(
+    #                     paste0("shared_", x),
+    #                     label = NULL,
+    #                     value = FALSE
+    #                 )
+    #             )
+    #         }),
+    #         stringsAsFactors = FALSE
+    #     )
+    #     
+    # }, 
+    # sanitize.text.function = function(x) x)
+    
+    
     output$cards_table <- renderTable({
         
         data.frame(
             Carte = cartes_df$cartes,
+            
             My_cards = sapply(cartes_df$cartes, function(x) {
-                as.character(
-                    checkboxInput(
-                        paste0("my_", x),
-                        label = NULL,
-                        value = FALSE
-                    )
+                paste0(
+                    '<input type="checkbox" id="my_', x, 
+                    '" style="transform:scale(0.8);">'
                 )
             }),
+            
             Shared = sapply(cartes_df$cartes, function(x) {
-                as.character(
-                    checkboxInput(
-                        paste0("shared_", x),
-                        label = NULL,
-                        value = FALSE
-                    )
+                paste0(
+                    '<input type="checkbox" id="shared_', x,
+                    '" style="transform:scale(0.8);">'
                 )
             }),
+            
             stringsAsFactors = FALSE
         )
         
-    }, 
+    },
     sanitize.text.function = function(x) x)
     
     #outputOptions(output, "show_panel", suspendWhenHidden = FALSE)
@@ -330,17 +436,142 @@ server <- function(input, output, session){
     
     
     
-    output$tab_logical_clause<-renderTable({
-        req(contrainte())
-        data<-clean_clause_table(contrainte()$clause)
-        data
-    })
-    
+   
+   
+   #----------------2) computation-------------------------------------------------
+   observeEvent(input$btn_computation, {
+      
+       solution_df(fill_all_probabilty(contrainte()))
+       proba_detail(compute_proba_per_card(contrainte()))
+       
+   })
+   
+   
+   observe({
+       
+       req(proba_detail())
+       metric<-merge(cartes_df,metrique_cartes(proba_detail()[,-c(1,2)]))
+       next_suggestion(suggestion_max(metric,proba_detail()[,-c(1,2)])$cartes)
+
+   })
     
 
+
+   
+   observeEvent(solution_df(),{
+       entropy(compute_entropy(solution_df()$Probability/100))
+       remaining_solution(length(solution_df()$Probability))
+       remaining_combination(sum(solution_df()$`Number of combination`))
+       
+       solution_txt(paste0("🎯",
+                           "Remaining solutions: ",
+                           remaining_solution(),
+                           " / ",
+                           n_solution_start))
+       combination_txt(paste0("🧩",
+                           "Remaining Combinations: ",
+                           remaining_combination(),
+                           " / ",
+                           n_tot_combi))
+       entropy_txt(paste0("🔎",
+                          "Entropy: ",
+                          round(entropy(),2)))
+   })
+   
+   
+   
+   
+   # ------------render---------------------------------------------------------
+   
+
+   output$solution_stats <- renderUI({
+       tagList(
+           div(entropy_txt()),
+           div(solution_txt()),
+           div(combination_txt())
+       )
+       
+   })
+   
+   
+   output$tab_solution_df<-renderTable({
+       req(solution_df())
+       solution_df() 
+   })
+   
+   outputOptions(output, "tab_solution_df", suspendWhenHidden = FALSE)
+   outputOptions(output, "solution_stats", suspendWhenHidden = FALSE)
+   
+   output$txt_next_suggest<-renderText({
+       req(next_suggestion())
+       txt<-paste(next_suggestion(), collapse = "/")
+       paste0("💡 Next hypothesis: ", txt)
+   })
+   
+
+   
+   
+   
+   
+   
+
+   
+   
+   output$tab_logical_clause<-renderTable({
+       req(contrainte())
+       data<-clean_clause_table(contrainte()$clause)
+       data
+   })
+   
+   
+   
    output$tab_card_cleaned2<-renderDT({
        req(contrainte())
        tab<-icon_cluedo2(contrainte()$globales$globales)
+       names(tab)<-friendly_names(names(tab))
+       
+       DT::datatable(
+           tab,
+           rownames = FALSE,
+           escape = FALSE,
+           class = "display no-stripe",
+           options = list(
+               dom = "t",
+               paging = FALSE,
+               ordering = FALSE,
+               searching = FALSE,
+               autoWidth = TRUE,
+               columnDefs = list(
+                   list(
+                       targets = 1,
+                       visible = FALSE
+                   ),
+                   list(
+                       className = "dt-center",
+                       targets = "_all"
+                   )
+               )
+           )
+       ) %>%
+           DT::formatStyle(
+               "type",
+               target = "row",
+               backgroundColor = DT::styleEqual(
+                   c("suspect", "armes", "lieux"),
+                   c("#f8e6e6", "#e6f0f8", "#e8f845")
+               )
+           )
+   })
+   
+   
+   
+   
+   
+   
+   output$proba_detail<-renderDT({
+       req(proba_detail())
+       tab<-proba_detail()
+       names(tab)<-friendly_names(names(tab))
        
        
        DT::datatable(
@@ -375,113 +606,74 @@ server <- function(input, output, session){
                )
            )
    })
-
-
-   
-
    
    
-   output$proba_detail<-renderDT({
-       req(proba_detail())
-
+   
+   # observeEvent(input$btn_cards, {
+   #     
+   #     showModal(
+   #         modalDialog(
+   #             title = "Pick initial cards",
+   #             
+   #             uiOutput("cardsInput"),
+   #             
+   #             
+   #             size = "m",
+   #             style = "width: 300px;
+   #                      display: flex;
+   #                      justify-content: center;
+   #                      align-items: center;",
+   #             easyClose = TRUE,
+   #             footer = NULL
+   #         )
+   #     )
+   #     
+   # })
+   
+   
+   observeEvent(input$btn_cards, {
        
-       
-       DT::datatable(
-           proba_detail(),
-           rownames = FALSE,
-           escape = FALSE,
-           class = "display no-stripe",
-           options = list(
-               dom = "t",
-               paging = FALSE,
-               ordering = FALSE,
-               searching = FALSE,
-               autoWidth = TRUE,
-               columnDefs = list(
-                   list(
-                       targets = 1,
-                       visible = FALSE
-                   ),
-                   list(
-                       className = "dt-center",
-                       targets = "_all"
-                   )
-               )
+       showModal(
+           modalDialog(
+               title = "Pick initial cards",
+               
+               div(
+                   style = "
+                    display: flex;
+                    justify-content: center;
+                    width: 100%;
+                ",
+                   uiOutput("cardsInput")
+               ),
+               
+               easyClose = TRUE,
+               footer = NULL,
+               
+               tags$style("
+                .modal-dialog {
+                    width: 300px;
+                    max-width: 300px;
+                }
+
+                .modal-body {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 10px;
+                }
+            ")
            )
-       ) %>%
-           DT::formatStyle(
-               "type",
-               target = "row",
-               backgroundColor = DT::styleEqual(
-                   c("suspect", "armes", "lieux"),
-                   c("#f8e6e6", "#e6f0f8", "#e8f845")
-               )
-           )
-   })
-   
-   
-   #----------------2) computation-------------------------------------------------
-   observeEvent(input$btn_computation, {
-       #print("enter observe")
-       solution_df(fill_all_probabilty(contrainte()))
-       proba_detail(compute_proba_per_card(contrainte()))
-   })
-    
-   output$tab_solution_df<-renderTable({
-       req(solution_df())
-       solution_df()
-   })
-   
-   observe({
-       req(proba_detail())
-       metric<-merge(cartes_df,metrique_cartes(proba_detail()[,-c(1,2)]))
-       #View(metric)
-       next_suggestion(suggestion_max(metric,proba_detail()[,-c(1,2)])$cartes)
-        #print(next_suggestion())
-   })
-   
-   output$txt_next_suggest<-renderText({
-       req(next_suggestion())
-       txt<-paste(next_suggestion(), collapse = "/")
-       paste0("💡 Next hypothesis: ", txt)
-   })
-
-   
-   observeEvent(solution_df(),{
-       entropy(compute_entropy(solution_df()$Probability/100))
-       remaining_solution(length(solution_df()$Probability))
-       remaining_combination(sum(solution_df()$nb_combi))
-       
-       solution_txt(paste0("🎯",
-                           "Remaining solutions: ",
-                           remaining_solution(),
-                           " / ",
-                           n_solution_start))
-       combination_txt(paste0("🧩",
-                           "Remaining Combinations: ",
-                           remaining_combination(),
-                           " / ",
-                           n_tot_combi))
-       entropy_txt(paste0("🔎",
-                          "Entropy: ",
-                          round(entropy(),2)))
-       # print(solution_txt())
-       # print(entropy_txt())
-       # print(combination_txt())
-   })
-   
-   
-   output$solution_stats <- renderUI({
-       
-       tagList(
-           div(entropy_txt()),
-           div(solution_txt()),
-           div(combination_txt())
        )
        
    })
    
-    
+   shinyjs::disable("btn_computation")
+   observe({
+       shinyjs::toggleState(
+           id = "btn_computation",
+           condition = input$btn_contrainte > 0
+       )
+   })
 
 
 }

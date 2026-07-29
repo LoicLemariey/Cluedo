@@ -42,17 +42,21 @@ ui <- page_navbar(
         #     choices = cartes_df$cartes
         # ),
         
-        div(class= "grid_init",
-            uiOutput("cardsInput")),
+        # div(class= "grid_init",
+        #     uiOutput("cardsInput")),
+        
+        actionButton("btn_cards", "Pick initial cards"),
         
         div(
         h5("Enter element of the investigation"),
+        DTOutput("suggestionTable")),
         div(class= "investigation",
             uiOutput("investigationInput")),
 
-        br(),
-        DTOutput("suggestionTable")),
         
+        
+        # le button ne dois pas prendre toutes la largeur 
+        br(),
         actionButton(
             "btn_contrainte",
             "Compute summary",
@@ -137,14 +141,18 @@ ui <- page_navbar(
             condition = "input.btn_computation > 0",
             uiOutput("solution_stats"),
             textOutput("txt_next_suggest"),
-            h5("Solution"),
-            tableOutput("tab_solution_df"),
+            
             h5("Distribution probability"),
             #tableOutput("tab_distribution_proba")
             div(
                 class = "grid_container",
                 DTOutput("proba_detail")
-            )
+            ),
+            h5("Solution results"),
+            div(class= "table_solution",
+                tableOutput("tab_solution_df"))
+            
+           
         )
     ),
 
