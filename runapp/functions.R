@@ -434,8 +434,7 @@ find_proba_to_one_solution<-function(vecteur_solution,contraintes_propage){
 
 
 fill_all_probabilty<-function(contraintes_propage){
-    
-    
+    #print("enter computation")
     df<-build_all_possible_solution(contraintes_propage$globales$globales)
     df$nb_combi<-0
     df$nb_combi <- apply(
@@ -446,11 +445,15 @@ fill_all_probabilty<-function(contraintes_propage){
             contraintes_propage = contraintes_propage
         )
     )
+    df$Probability<-round(df$nb_combi/sum(df$nb_combi)*100,2)
+    
+    df<-df %>% arrange(desc(Probability)) %>% filter(Probability>0)
+    #print("leave computation")
     return(df)
 }
 
 
-entropy <- function(p) {
+compute_entropy <- function(p) {
     p <- p[p > 0]   # retire les zéros pour éviter log(0)
     -sum(p * log(p))
 }
@@ -466,6 +469,7 @@ progress_enquete<-function(df_solution,n_tot_combi,scenario_per_solution_start){
 
 
 compute_proba_per_card<-function(contraintes_propage){
+    #print("enter proba fonction")
     proba_table<-contraintes_propage$globales$globales
     proba_table[proba_table == 0] <- NA
     proba_table[proba_table == -1] <- 0
@@ -488,7 +492,7 @@ compute_proba_per_card<-function(contraintes_propage){
                 new_globales<-ajouter_globale(contraintes_propage$globales,
                                               colnames(proba_table)[j],
                                               rownames(proba_table)[i],TRUE)
-                new_contrainte<-boucle_propagation(new_globales,clause)
+                new_contrainte<-boucle_propagation(new_globales,contraintes_propage$clause)
                 dp_preli<- DP_pre_computation(new_contrainte)
                 
                 memo <- new.env(hash = TRUE)
@@ -508,8 +512,19 @@ compute_proba_per_card<-function(contraintes_propage){
             
         }
     }
+    # print("Leave proba fonction")
+    # View(proba_table)
+
     
-    return(proba_table)
+    tab <- as.data.frame(proba_table*100, check.names = FALSE)
+    
+    tab <- data.frame(
+        cards = row.names(proba_table),
+        type = cartes_df$type,
+        tab,
+        check.names = FALSE
+    )
+    return(tab)
 }
 
 
@@ -518,10 +533,12 @@ metrique_cartes <- function(proba_table, voisin = "J2") {
     
     # Entropie de la carte
     H <- apply(proba_table, 1, function(p) {
-        p <- p[!is.na(p) & p > 0]
+        p <- p[!is.na(p) & p > 0]/100
         -sum(p * log2(p))
     })
     
+    
+    #print(H)
     # Probabilité que le voisin possède la carte
     p_voisin <- proba_table[,voisin]
     
@@ -546,8 +563,9 @@ metrique_cartes <- function(proba_table, voisin = "J2") {
 suggestion_max <- function(cartes, proba_table,
                            moi = "J1",
                            joueur_lointain = "J4") {
-    
+    #browser()
     res <- list()
+    proba_table<-proba_table/100
     
     for (t in unique(cartes$type)) {
         
@@ -567,16 +585,21 @@ suggestion_max <- function(cartes, proba_table,
         if (!resolu) {
             
             # Cas normal : meilleure métrique
-            choix <- sous[which.max(sous$Metrique), ]
+            max_metric <- max(sous$Metrique)
+            choix <- sous[sous$Metrique == max_metric, ] |>
+                dplyr::slice_sample(n = 1)
             
         } else {
             
             ## 1. Une carte de ma main
             idx <- sous$cartes[proba_table[sous$cartes, moi] == 1]
+            # print("resolu carte de ma main")
+            # print(idx)
+            
             
             if (length(idx) > 0) {
                 
-                choix <- sous[match(idx[1], sous$cartes), ]
+                choix <- sous[match(sample(idx,1), sous$cartes), ]
                 
             } else {
                 
@@ -591,7 +614,9 @@ suggestion_max <- function(cartes, proba_table,
                 } else {
                     
                     ## 3. Sinon meilleure métrique
-                    choix <- sous[which.max(sous$Metrique), ]
+                    max_metric <- max(sous$Metrique)
+                    choix <- sous[sous$Metrique == max_metric, ] |>
+                        dplyr::slice_sample(n = 1)
                     
                 }
             }
@@ -669,3 +694,51 @@ build_contrainte_from_ui<-function(my_cards,shared,suggestion,globales,clause,n_
     
     
 }
+
+
+icon_cluedo <- function(x) {
+    res <- x
+    res[x ==  1] <- "✅"
+    res[x ==  0] <- "❔"
+    res[x == -1] <- "✘"#"❌"
+    res
+}
+
+
+
+icon_cluedo2 <- function(x) {
+    res <- x
+    
+    res[x == 1] <- "✅"
+    res[x == 0] <- "❔"
+    res[x == -1] <- "✘"
+    
+    tab <- as.data.frame(res, check.names = FALSE)
+    
+    tab <- data.frame(
+        cards = row.names(x),
+        type = cartes_df$type,
+        tab,
+        check.names = FALSE
+    )
+    #View(tab)
+    return(tab)
+}
+
+clean_clause_table <- function(clause) {
+    
+    # Garder uniquement les clauses avec au moins 2 cartes
+    clause <- clause[sapply(clause$cartes, length) > 1, ]
+    
+    # Transformer les vecteurs de cartes en texte
+    clause$cartes <- sapply(
+        clause$cartes,
+        function(x) paste(x, collapse = "/")
+    )
+    names(clause)<-c("Player","Must Have One of")
+    clause<-clause %>% arrange(Player)
+    
+    return(clause)
+}
+
+

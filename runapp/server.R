@@ -16,9 +16,20 @@ server <- function(input, output, session){
     globales<-reactiveVal()
     contrainte<-reactiveVal()
     
+    #sortie apres compuation
+    solution_df<-reactiveVal()
+    entropy<-reactiveVal()
+    remaining_combination<-reactiveVal()
+    remaining_solution<-reactiveVal()
+    entropy_txt<-reactiveVal()
+    combination_txt<-reactiveVal()
+    solution_txt<-reactiveVal()
+    proba_detail<-reactiveVal()
+    next_suggestion<-reactiveVal()
+    
     n_players<-reactiveVal()
     observe(n_players(as.numeric(input$num_players)))
-    
+
     
     
     
@@ -262,7 +273,8 @@ server <- function(input, output, session){
                                      n_dimension,
                                      n_players()))
             
-            print(contrainte())
+            # print(contrainte())
+            #View(contrainte()$clause$cartes)
         
     })
     
@@ -310,7 +322,165 @@ server <- function(input, output, session){
     #outputOptions(output, "show_panel", suspendWhenHidden = FALSE)
  
     
+    # output$tab_card_cleaned<-renderTable({
+    #     req(contrainte())
+    #     icon_cluedo(contrainte()$globales$globales)
+    # 
+    # },, rownames = TRUE)
     
+    
+    
+    output$tab_logical_clause<-renderTable({
+        req(contrainte())
+        data<-clean_clause_table(contrainte()$clause)
+        data
+    })
+    
+    
+
+   output$tab_card_cleaned2<-renderDT({
+       req(contrainte())
+       tab<-icon_cluedo2(contrainte()$globales$globales)
+       
+       
+       DT::datatable(
+           tab,
+           rownames = FALSE,
+           escape = FALSE,
+           class = "display no-stripe",
+           options = list(
+               dom = "t",
+               paging = FALSE,
+               ordering = FALSE,
+               searching = FALSE,
+               autoWidth = TRUE,
+               columnDefs = list(
+                   list(
+                       targets = 1,
+                       visible = FALSE
+                   ),
+                   list(
+                       className = "dt-center",
+                       targets = "_all"
+                   )
+               )
+           )
+       ) %>%
+           DT::formatStyle(
+               "type",
+               target = "row",
+               backgroundColor = DT::styleEqual(
+                   c("suspect", "armes", "lieux"),
+                   c("#f8e6e6", "#e6f0f8", "#e8f845")
+               )
+           )
+   })
+
+
+   
+
+   
+   
+   output$proba_detail<-renderDT({
+       req(proba_detail())
+
+       
+       
+       DT::datatable(
+           proba_detail(),
+           rownames = FALSE,
+           escape = FALSE,
+           class = "display no-stripe",
+           options = list(
+               dom = "t",
+               paging = FALSE,
+               ordering = FALSE,
+               searching = FALSE,
+               autoWidth = TRUE,
+               columnDefs = list(
+                   list(
+                       targets = 1,
+                       visible = FALSE
+                   ),
+                   list(
+                       className = "dt-center",
+                       targets = "_all"
+                   )
+               )
+           )
+       ) %>%
+           DT::formatStyle(
+               "type",
+               target = "row",
+               backgroundColor = DT::styleEqual(
+                   c("suspect", "armes", "lieux"),
+                   c("#f8e6e6", "#e6f0f8", "#e8f845")
+               )
+           )
+   })
+   
+   
+   #----------------2) computation-------------------------------------------------
+   observeEvent(input$btn_computation, {
+       #print("enter observe")
+       solution_df(fill_all_probabilty(contrainte()))
+       proba_detail(compute_proba_per_card(contrainte()))
+   })
+    
+   output$tab_solution_df<-renderTable({
+       req(solution_df())
+       solution_df()
+   })
+   
+   observe({
+       req(proba_detail())
+       metric<-merge(cartes_df,metrique_cartes(proba_detail()[,-c(1,2)]))
+       #View(metric)
+       next_suggestion(suggestion_max(metric,proba_detail()[,-c(1,2)])$cartes)
+        #print(next_suggestion())
+   })
+   
+   output$txt_next_suggest<-renderText({
+       req(next_suggestion())
+       txt<-paste(next_suggestion(), collapse = "/")
+       paste0("💡 Next hypothesis: ", txt)
+   })
+
+   
+   observeEvent(solution_df(),{
+       entropy(compute_entropy(solution_df()$Probability/100))
+       remaining_solution(length(solution_df()$Probability))
+       remaining_combination(sum(solution_df()$nb_combi))
+       
+       solution_txt(paste0("🎯",
+                           "Remaining solutions: ",
+                           remaining_solution(),
+                           " / ",
+                           n_solution_start))
+       combination_txt(paste0("🧩",
+                           "Remaining Combinations: ",
+                           remaining_combination(),
+                           " / ",
+                           n_tot_combi))
+       entropy_txt(paste0("🔎",
+                          "Entropy: ",
+                          round(entropy(),2)))
+       # print(solution_txt())
+       # print(entropy_txt())
+       # print(combination_txt())
+   })
+   
+   
+   output$solution_stats <- renderUI({
+       
+       tagList(
+           div(entropy_txt()),
+           div(solution_txt()),
+           div(combination_txt())
+       )
+       
+   })
+   
     
 
 

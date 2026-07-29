@@ -5,7 +5,7 @@ library(renv)
 
 renv_lib<-"C:/Users/loicl/OneDrive/Documents/Loïc/Divers_non_disque/Data_science/Projet/MesProjets/Cluedo/Cluedo_app/renv/library/R-4.2/x86_64-w64-mingw32"
 
-#lib2<-"C:/Users/loicl/AppData/Local/R/cache/R/renv/sandbox/R-4.2/x86_64-w64-mingw32/0cdf27ab"
+lib2<-"C:/Users/loicl/AppData/Local/R/cache/R/renv/sandbox/R-4.2/x86_64-w64-mingw32/0cdf27ab"
 
 
 project_runapp<-"~/Loïc/Divers_non_disque/Data_science/Projet/MesProjets/Coupe_du_monde_2026/runapp"

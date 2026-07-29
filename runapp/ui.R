@@ -42,11 +42,14 @@ ui <- page_navbar(
         #     choices = cartes_df$cartes
         # ),
         
-        div(uiOutput("cardsInput")),
+        div(class= "grid_init",
+            uiOutput("cardsInput")),
         
         div(
         h5("Enter element of the investigation"),
-        uiOutput("investigationInput"),
+        div(class= "investigation",
+            uiOutput("investigationInput")),
+
         br(),
         DTOutput("suggestionTable")),
         
@@ -54,7 +57,29 @@ ui <- page_navbar(
             "btn_contrainte",
             "Compute summary",
             style = "width:auto;"
+        ),
+        br(),
+        # h5("table 1"),
+        # tableOutput("tab_card_cleaned"),
+        
+        fluidRow(
+            column(
+                width = 7,
+                h5("Card Deduction Grid"),
+                div(
+                    class = "grid_container",
+                    DTOutput("tab_card_cleaned2")
+                )
+            ),
+            
+            column(
+                width = 5,
+                h5("Logical contraints"),
+                tableOutput("tab_logical_clause")
+            )
         )
+        
+        
 
             
             #titlePanel("States"),
@@ -99,8 +124,8 @@ ui <- page_navbar(
             ),
             
             actionButton(
-                "btn_simulation",
-                "Simulate",
+                "btn_computation",
+                "Compute",
                 style = "width:auto;"
             )
         ),
@@ -109,9 +134,17 @@ ui <- page_navbar(
         #---------------conditionnal pannel-------------------------------------
         
         conditionalPanel(
-            condition = "output.show_panel",
-           
-            #div(DTOutput("table_path"),height="700px")
+            condition = "input.btn_computation > 0",
+            uiOutput("solution_stats"),
+            textOutput("txt_next_suggest"),
+            h5("Solution"),
+            tableOutput("tab_solution_df"),
+            h5("Distribution probability"),
+            #tableOutput("tab_distribution_proba")
+            div(
+                class = "grid_container",
+                DTOutput("proba_detail")
+            )
         )
     ),
 

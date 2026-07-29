@@ -55,6 +55,121 @@
 }
 
 
+
+/*Table contraintes propagee*/
+/* Tableau Cluedo compact */
+
+.grid_container table.dataTable {
+  font-size: 11px !important;
+}
+
+/* Cellules */
+.grid_container table.dataTable tbody td,
+.grid_container table.dataTable tbody th {
+  padding: 1px 4px !important;
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+}
+
+/* En-têtes */
+.grid_container table.dataTable thead th {
+  padding: 2px 4px !important;
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+}
+
+/* Réduit la hauteur minimale des lignes */
+.grid_container table.dataTable tbody tr {
+  height: 18px !important;
+}
+
+/* Centre les cellules */
+.grid_container table.dataTable tbody td {
+  text-align: center;
+}
+
+
+
+
+
+
+
+
+
+
+/* ============================= */
+/* Tableau cartes init compact Shiny   */
+/* ============================= */
+
+.grid_init table {
+  font-size: 11px !important;
+  margin-bottom: 0 !important;
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: auto !important;
+}
+
+/* Cellules */
+.grid_init table td,
+.grid_init table th {
+  padding: 1px 4px !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+}
+
+/* Hauteur des lignes */
+.grid_init table tr {
+  height: 18px !important;
+}
+
+/* Colonne Carte */
+.grid_init table th:nth-child(1),
+.grid_init table td:nth-child(1) {
+  width: 150px !important;
+  text-align: left;
+}
+
+/* Colonnes checkbox My_cards et Shared */
+.grid_init table th:nth-child(2),
+.grid_init table td:nth-child(2),
+.grid_init table th:nth-child(3),
+.grid_init table td:nth-child(3) {
+  width: 35px !important;
+  padding: 0 !important;
+  text-align: center !important;
+}
+
+/* Réduction des marges générées par Shiny */
+.grid_init .shiny-input-container {
+  margin-bottom: 0 !important;
+  min-height: 0 !important;
+}
+
+/* Checkbox plus petite */
+.grid_init input[type="checkbox"] {
+  transform: scale(0.8);
+  margin: 0 !important;
+}
+
+/* Alignement vertical des checkbox */
+.grid_init .checkbox {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.grid_init {
+  display: flex;
+  justify-content: center;
+}
+
+
+
+
+
+
+
+
+
 /*
 #cards_table table {
   width: auto;
